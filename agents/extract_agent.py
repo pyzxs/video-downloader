@@ -1,15 +1,16 @@
 """语音转文本Agent - 支持FunAudioLLM/SenseVoiceSmall和长音频分片处理"""
 
-import os
 import asyncio
-import aiohttp
-import aiofiles
-import tempfile
 import math
-from pathlib import Path
-from typing import Optional, List, Tuple
-from loguru import logger
+import os
 import subprocess
+import tempfile
+from pathlib import Path
+from typing import List, Optional, Tuple
+
+import aiofiles
+import aiohttp
+from loguru import logger
 
 
 async def _extract_audio(video_path: Path, output_path: Path = None) -> Path:
@@ -104,7 +105,7 @@ class ExtractAgent:
         # 根据时长决定是否分片
         if duration > self.MAX_AUDIO_DURATION:
             if show_progress:
-                print(f"音频过长，进行分片处理...")
+                print("音频过长，进行分片处理...")
                 print(f"  分片大小: {self.MAX_AUDIO_DURATION}秒")
                 print(f"  重叠时长: {self.OVERLAP_DURATION}秒")
 
@@ -120,7 +121,7 @@ class ExtractAgent:
         # 清理临时音频文件
         try:
             audio_path.unlink()
-        except:
+        except Exception:
             pass
 
         if show_progress:
@@ -207,7 +208,9 @@ class ExtractAgent:
         for i in range(num_segments):
             # 计算片段起止时间（带重叠）
             start_time = max(0, i * self.MAX_AUDIO_DURATION - self.OVERLAP_DURATION)
-            end_time = min(duration, (i + 1) * self.MAX_AUDIO_DURATION + self.OVERLAP_DURATION)
+            end_time = min(
+                duration, (i + 1) * self.MAX_AUDIO_DURATION + self.OVERLAP_DURATION
+            )
 
             # 计算实际片段时长
             segment_duration = end_time - start_time
@@ -241,7 +244,7 @@ class ExtractAgent:
                 for seg_path, _, _ in segments:
                     try:
                         seg_path.unlink()
-                    except:
+                    except Exception:
                         pass
                 raise Exception(f"音频分片失败 (片段 {i}): {stderr.decode()}")
 
@@ -263,7 +266,9 @@ class ExtractAgent:
         tasks = []
         for i, (segment_path, start_time, end_time) in enumerate(segments):
             if show_progress:
-                print(f"   处理片段 {i + 1}/{len(segments)}: {start_time:.1f}s - {end_time:.1f}s")
+                print(
+                    f"   处理片段 {i + 1}/{len(segments)}: {start_time:.1f}s - {end_time:.1f}s"
+                )
 
             task = self._transcribe_audio_segment(segment_path, i, show_progress)
             tasks.append(task)
@@ -278,7 +283,7 @@ class ExtractAgent:
         for segment_path, _, _ in segments:
             try:
                 segment_path.unlink()
-            except:
+            except Exception:
                 pass
 
         return merged_text
@@ -293,14 +298,24 @@ class ExtractAgent:
             if show_progress:
                 print(f"   片段 {segment_index + 1} 识别完成: {len(text)}字符")
 
-            return {"segment_index": segment_index, "text": text, "success": True, "error": None}
+            return {
+                "segment_index": segment_index,
+                "text": text,
+                "success": True,
+                "error": None,
+            }
         except Exception as e:
             logger.error(f"片段 {segment_index} 识别失败: {e}")
 
             if show_progress:
                 print(f"   片段 {segment_index + 1} 识别失败: {str(e)[:50]}...")
 
-            return {"segment_index": segment_index, "text": "", "success": False, "error": str(e)}
+            return {
+                "segment_index": segment_index,
+                "text": "",
+                "success": False,
+                "error": str(e),
+            }
 
     def _merge_transcriptions(
         self, results: List[dict], segments: List[Tuple[Path, float, float]]
@@ -313,7 +328,9 @@ class ExtractAgent:
         3. 合并成连贯的文本
         """
         # 过滤成功的转录
-        successful_results = [r for r in results if isinstance(r, dict) and r.get("success")]
+        successful_results = [
+            r for r in results if isinstance(r, dict) and r.get("success")
+        ]
 
         if not successful_results:
             return "所有片段识别失败"
@@ -412,7 +429,10 @@ class ExtractAgent:
         return compressed_path
 
     async def batch_extract(
-        self, video_paths: List[Path], max_concurrent: int = 3, save_to_file: bool = True
+        self,
+        video_paths: List[Path],
+        max_concurrent: int = 3,
+        save_to_file: bool = True,
     ) -> List[Tuple[str, Optional[Path]]]:
         """批量提取文本，控制并发数
 
@@ -439,7 +459,6 @@ class ExtractAgent:
 # 兼容性包装器，保持原有接口
 async def extract_audio(video_path: Path, output_path: Path = None) -> Path:
     """兼容原有接口：从视频中提取音频"""
-    agent = ExtractAgent()
     return await _extract_audio(video_path, output_path)
 
 

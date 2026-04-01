@@ -2,7 +2,6 @@
 """检查项目依赖是否完整"""
 
 import sys
-import subprocess
 
 # 项目所需的依赖包
 REQUIRED_DEPS = [

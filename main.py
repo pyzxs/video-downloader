@@ -8,12 +8,36 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+from dotenv import load_dotenv
+
 # 导入本地模块
 from agents.download_agent import DownloadAgent
 from agents.extract_agent import ExtractAgent
 from utils.file import save_markdown
 
-from dotenv import load_dotenv
+
+# 简单的文本分段代理（临时实现）
+class SegmentAgent:
+    """简单的文本分段代理"""
+
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key
+
+    async def segment(self, text: str) -> str:
+        """简单的文本分段 - 按段落分割"""
+        # 这是一个简单的实现，实际应该使用AI模型进行语义分段
+        # 这里只是按换行符分割
+        paragraphs = text.split("\n")
+        segmented = []
+        for i, para in enumerate(paragraphs):
+            if para.strip():  # 跳过空行
+                segmented.append(f"## 段落 {i + 1}\n{para.strip()}")
+
+        if segmented:
+            return "\n\n".join(segmented)
+        else:
+            return text
+
 
 # 自动加载 .env 文件
 load_dotenv()
@@ -22,7 +46,11 @@ load_dotenv()
 class VideoProcessor:
     """视频处理器"""
 
-    def __init__(self, output_dir: Path = Path(os.environ.get("OUTPUT_DIR")), proxy: Optional[str] = None):
+    def __init__(
+        self,
+        output_dir: Path = Path(os.environ.get("OUTPUT_DIR")),
+        proxy: Optional[str] = None,
+    ):
         self.output_dir = output_dir
         self.download_agent = DownloadAgent(output_dir, proxy)
         self.extract_agent = None
@@ -148,9 +176,13 @@ def main() -> int:
         help="命令: info(获取信息), download(下载视频), extract(提取文案), process(完整处理)",
     )
     parser.add_argument("url", help="视频分享链接")
-    parser.add_argument("-o", "--output", default="./output", help="输出目录 (默认: ./output)")
     parser.add_argument(
-        "--save-video", action="store_true", help="保存视频文件（仅extract/process命令）"
+        "-o", "--output", default="./output", help="输出目录 (默认: ./output)"
+    )
+    parser.add_argument(
+        "--save-video",
+        action="store_true",
+        help="保存视频文件（仅extract/process命令）",
     )
     parser.add_argument(
         "--no-segment",
@@ -162,10 +194,12 @@ def main() -> int:
         "--api-key", help="硅基流动API密钥（也可通过环境变量 SILI_FLOW_API_KEY 设置）"
     )
     parser.add_argument(
-        "--deepseek-key", help="DeepSeek API密钥（也可通过环境变量 DEEPSEEK_API_KEY 设置）"
+        "--deepseek-key",
+        help="DeepSeek API密钥（也可通过环境变量 DEEPSEEK_API_KEY 设置）",
     )
     parser.add_argument(
-        "--proxy", help="代理服务器地址（例如: http://127.0.0.1:7890 或 socks5://127.0.0.1:7891）"
+        "--proxy",
+        help="代理服务器地址（例如: http://127.0.0.1:7890 或 socks5://127.0.0.1:7891）",
     )
 
     args = parser.parse_args()
@@ -176,7 +210,7 @@ def main() -> int:
 
     if args.deepseek_key:
         os.environ["DEEPSEEK_API_KEY"] = args.deepseek_key
-    
+
     # 设置代理环境变量
     if args.proxy:
         os.environ["YOUTUBE_PROXY"] = args.proxy
@@ -206,7 +240,10 @@ def main() -> int:
 
                 case "download":
                     # 仅下载视频
-                    video_info, video_path = await processor.download_agent.download_video(args.url)
+                    (
+                        video_info,
+                        video_path,
+                    ) = await processor.download_agent.download_video(args.url)
                     print(f"\n[OK] 视频已保存: {video_path}")
 
                 case "extract":

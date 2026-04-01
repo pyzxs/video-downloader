@@ -1,10 +1,10 @@
 """YouTube视频下载器（使用yt-dlp）"""
 
-import re
-import yt_dlp
 import os
+import re
 from pathlib import Path
-from typing import Optional, Dict, Any
+
+import yt_dlp
 
 from .base import BaseDownloader, VideoInfo
 
@@ -14,16 +14,20 @@ class YouTubeDownloader(BaseDownloader):
 
     def __init__(self, output_dir: Path = Path("./output")):
         super().__init__(output_dir)
-        
+
         # 从环境变量获取代理设置
-        self.proxy = os.getenv("YOUTUBE_PROXY") or os.getenv("HTTP_PROXY") or os.getenv("HTTPS_PROXY")
-        
+        self.proxy = (
+            os.getenv("YOUTUBE_PROXY")
+            or os.getenv("HTTP_PROXY")
+            or os.getenv("HTTPS_PROXY")
+        )
+
         self.ydl_opts = {
             "quiet": True,
             "no_warnings": True,
             "extract_flat": False,
         }
-        
+
         # 如果设置了代理，添加到选项
         if self.proxy:
             self.ydl_opts["proxy"] = self.proxy
@@ -31,7 +35,7 @@ class YouTubeDownloader(BaseDownloader):
     async def get_video_info(self, url: str) -> VideoInfo:
         """获取YouTube视频信息"""
         ydl_opts = self.ydl_opts.copy()
-        
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             try:
                 info = ydl.extract_info(url, download=False)
@@ -57,9 +61,13 @@ class YouTubeDownloader(BaseDownloader):
             except Exception as e:
                 raise Exception(f"获取YouTube视频信息失败: {e}")
 
-    async def download_video(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
+    async def download_video(
+        self, video_info: VideoInfo, show_progress: bool = True
+    ) -> Path:
         """下载YouTube视频"""
-        output_path = self.output_dir / f"{video_info.platform}_{video_info.video_id}.mp4"
+        output_path = (
+            self.output_dir / f"{video_info.platform}_{video_info.video_id}.mp4"
+        )
 
         ydl_opts = {
             "format": "best[ext=mp4]",
@@ -67,7 +75,7 @@ class YouTubeDownloader(BaseDownloader):
             "quiet": not show_progress,
             "no_warnings": True,
         }
-        
+
         # 添加代理设置
         if self.proxy:
             ydl_opts["proxy"] = self.proxy

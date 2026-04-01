@@ -1,17 +1,16 @@
 """快手视频下载器 - 参考 KS-Downloader 项目实现"""
 
-import re
 import json
-import asyncio
+import re
+from http.cookies import SimpleCookie
 from pathlib import Path
 from typing import Optional, Tuple
 from urllib.parse import parse_qs
 
-import aiohttp
 import aiofiles
-from tqdm import tqdm
+import aiohttp
 from lxml import etree
-from http.cookies import SimpleCookie
+from tqdm import tqdm
 
 from .base import BaseDownloader, VideoInfo
 
@@ -72,7 +71,9 @@ class KuaishouDownloader(BaseDownloader):
     # 详情页 URL
     PC_DETAIL_URL = re.compile(r"(https?://\S*kuaishou\.(?:com|cn)/short-video/\S+)")
     C_DETAIL_URL = re.compile(r"(https?://\S*kuaishou\.(?:com|cn)/fw/photo/\S+)")
-    REDIRECT_DETAIL_URL = re.compile(r"(https?://\S*chenzhongtech\.(?:com|cn)/fw/photo/\S+)")
+    REDIRECT_DETAIL_URL = re.compile(
+        r"(https?://\S*chenzhongtech\.(?:com|cn)/fw/photo/\S+)"
+    )
 
     # 从 HTML 中提取数据的关键字
     WEB_KEYWORD = "window.__APOLLO_STATE__="
@@ -112,7 +113,7 @@ class KuaishouDownloader(BaseDownloader):
         # 5. 构建 VideoInfo
         return VideoInfo(
             video_id=photo_id,
-            title=video_data.get("caption",""),
+            title=video_data.get("caption", ""),
             url=video_data.get("download_url", ""),
             platform="kuaishou",
             author=video_data.get("author_name"),
@@ -122,7 +123,9 @@ class KuaishouDownloader(BaseDownloader):
             metadata=video_data,
         )
 
-    async def download_video(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
+    async def download_video(
+        self, video_info: VideoInfo, show_progress: bool = True
+    ) -> Path:
         """下载快手视频
 
         Args:
@@ -136,7 +139,9 @@ class KuaishouDownloader(BaseDownloader):
         if not video_info.url:
             raise ValueError("视频下载链接为空")
 
-        output_path = self.output_dir / f"{video_info.platform}_{video_info.video_id}.mp4"
+        output_path = (
+            self.output_dir / f"{video_info.platform}_{video_info.video_id}.mp4"
+        )
 
         # 如果文件已存在，直接返回
         if output_path.exists():
@@ -253,11 +258,13 @@ class KuaishouDownloader(BaseDownloader):
                 self._update_cookie(response.cookies)
                 return str(response.url)
 
-    def _update_cookie(self, cookies:SimpleCookie) -> None:
+    def _update_cookie(self, cookies: SimpleCookie) -> None:
         """更新 cookie"""
         if self._cookie:
             return
-        cookie_str = "; ".join([f"{key}={value.value}" for key, value in cookies.items()])
+        cookie_str = "; ".join(
+            [f"{key}={value.value}" for key, value in cookies.items()]
+        )
         if cookie_str:
             self._cookie = cookie_str
 
@@ -311,7 +318,9 @@ class KuaishouDownloader(BaseDownloader):
                 response.raise_for_status()
                 return await response.text()
 
-    def _extract_video_data(self, html: str, photo_id: str, web: bool) -> Optional[dict]:
+    def _extract_video_data(
+        self, html: str, photo_id: str, web: bool
+    ) -> Optional[dict]:
         """从 HTML 中提取视频数据
 
         Args:
@@ -463,4 +472,3 @@ class KuaishouDownloader(BaseDownloader):
 
 
 # 类型导入
-

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 import aiohttp
+
 from .base import BaseDownloader, VideoInfo
 
 
@@ -22,7 +23,9 @@ class BilibiliDownloader(BaseDownloader):
         bvid = self._extract_bvid(url)
         return await self._get_info_by_bvid(bvid)
 
-    async def download_video(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
+    async def download_video(
+        self, video_info: VideoInfo, show_progress: bool = True
+    ) -> Path:
         """使用 you-get 下载B站视频"""
         # 确保输出目录存在
         output_dir = self.output_dir
@@ -63,8 +66,12 @@ class BilibiliDownloader(BaseDownloader):
         stdout, stderr = await process.communicate()
 
         if process.returncode != 0:
-            error_msg = stderr.decode("utf-8", errors="ignore") if stderr else "unknown error"
-            raise Exception(f"you-get 下载失败 (code {process.returncode}): {error_msg[:500]}")
+            error_msg = (
+                stderr.decode("utf-8", errors="ignore") if stderr else "unknown error"
+            )
+            raise Exception(
+                f"you-get 下载失败 (code {process.returncode}): {error_msg[:500]}"
+            )
 
         # 查找下载的文件（you-get 可能输出多个文件，但通常只有一个视频文件）
         # 文件命名规则：输出目录 + 输出文件名 + 扩展名（如 .mp4, .flv）
@@ -91,7 +98,7 @@ class BilibiliDownloader(BaseDownloader):
         xml_filename = Path(output_dir / f"{video_info.title}.cmt.xml")
         if xml_filename.exists():
             xml_filename.unlink()
-            print(f"✅ 清理测试视频文件")
+            print("✅ 清理测试视频文件")
 
         return downloaded_file
 
@@ -136,7 +143,9 @@ class BilibiliDownloader(BaseDownloader):
 
                 return VideoInfo(
                     video_id=bvid,
-                    title=self._sanitize_filename(video_data.get("title", f"bilibili_{bvid}")),
+                    title=self._sanitize_filename(
+                        video_data.get("title", f"bilibili_{bvid}")
+                    ),
                     url=video_url,
                     platform="bilibili",
                     author=video_data.get("owner", {}).get("name"),

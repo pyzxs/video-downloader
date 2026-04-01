@@ -1,9 +1,9 @@
 """小红书视频下载器"""
 
 import re
-import json
-import aiohttp
 from pathlib import Path
+
+import aiohttp
 
 from .base import BaseDownloader, VideoInfo
 
@@ -20,9 +20,13 @@ class XiaohongshuDownloader(BaseDownloader):
         note_id = await self._extract_note_id(url)
         return await self._get_info_by_note_id(note_id)
 
-    async def download_video(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
+    async def download_video(
+        self, video_info: VideoInfo, show_progress: bool = True
+    ) -> Path:
         """下载小红书视频"""
-        output_path = self.output_dir / f"{video_info.platform}_{video_info.video_id}.mp4"
+        output_path = (
+            self.output_dir / f"{video_info.platform}_{video_info.video_id}.mp4"
+        )
 
         async with aiohttp.ClientSession() as session:
             async with session.get(video_info.url, headers=self.HEADERS) as response:
@@ -80,7 +84,10 @@ class XiaohongshuDownloader(BaseDownloader):
                     raise Exception("无法获取视频信息")
 
                 video_list = (
-                    note_data.get("video", {}).get("media", {}).get("stream", {}).get("h264", [])
+                    note_data.get("video", {})
+                    .get("media", {})
+                    .get("stream", {})
+                    .get("h264", [])
                 )
                 video_url = video_list[0].get("master_url") if video_list else None
 
@@ -90,7 +97,9 @@ class XiaohongshuDownloader(BaseDownloader):
 
                 return VideoInfo(
                     video_id=note_id,
-                    title=self._sanitize_filename(note_data.get("title", f"xiaohongshu_{note_id}")),
+                    title=self._sanitize_filename(
+                        note_data.get("title", f"xiaohongshu_{note_id}")
+                    ),
                     url=video_url,
                     platform="xiaohongshu",
                     author=note_data.get("user", {}).get("nickname"),

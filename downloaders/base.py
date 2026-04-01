@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -34,7 +34,9 @@ class BaseDownloader(ABC):
         pass
 
     @abstractmethod
-    async def download_video(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
+    async def download_video(
+        self, video_info: VideoInfo, show_progress: bool = True
+    ) -> Path:
         """下载视频"""
         pass
 

@@ -1,18 +1,21 @@
 """文件处理工具"""
 
 import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict
 
 
-def save_markdown(content: str, output_path: Path, metadata: Dict[str, Any] = None) -> Path:
+def save_markdown(
+    content: str, output_path: Path, metadata: Dict[str, Any] = None
+) -> Path:
     """保存为Markdown文件"""
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    header = f"""#{metadata.get("title", "文案内容")}"""
     if metadata:
         # 添加元数据头部
-        header = f"""# {metadata.get("title", "文案内容")}
+        header += f"""
         | 属性 | 值 |
         |------|-----|
         | 视频ID | `{metadata.get("video_id", "")}` |
@@ -20,9 +23,7 @@ def save_markdown(content: str, output_path: Path, metadata: Dict[str, Any] = No
         | 作者 | {metadata.get("author", "")} |
         | 提取时间 | {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} |
         | 下载链接 | [点击下载]({metadata.get("video_url", "")}) |
-        
         ---
-        
         """
         content = header + content
 
@@ -33,5 +34,7 @@ def save_markdown(content: str, output_path: Path, metadata: Dict[str, Any] = No
 def save_json(data: Any, output_path: Path) -> Path:
     """保存为JSON文件"""
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    output_path.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     return output_path

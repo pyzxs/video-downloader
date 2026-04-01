@@ -2,8 +2,20 @@
 name = "video-downloader"
 version = "1.0.0"
 description = "多平台视频下载和文案提取工具 - 支持抖音、快手、小红书、B站、YouTube等"
-authors = [{name = "Your Name", email = "your.email@example.com"}]
+readme = "README.md"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+license = {text = "MIT"}
 requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 dependencies = [
     "aiohttp>=3.9.0",
     "aiofiles>=23.2.0",
@@ -14,29 +26,10 @@ dependencies = [
     "loguru>=0.7.2",
     "you-get>=0.4.1743",
     "tqdm>=4.65.0",
+    "lxml>=4.9.0",
 ]
 
-
-
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-# 自动发现包和模块
-py-modules = ["main"]
-packages = ["downloaders", "agents", "utils"]
-
-[tool.uv.scripts]
-lint = "ruff check ."
-format = "ruff format ."
-fix = "ruff check --fix ."
-
-[tool.setuptools.package-dir]
-"" = "."
-
-# 开发依赖
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21.0",
@@ -45,10 +38,26 @@ dev = [
     "mypy>=1.0",
 ]
 
-[tool.black]
-line-length = 100
-target-version = ['py312']
+[project.scripts]
+video-dl = "main:main"
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dependencies = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0"]
+
+# 由于项目结构是扁平的，需要配置hatch来正确处理
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+# 开发工具配置
 [tool.ruff]
 line-length = 100
 select = ["E", "F", "I", "N", "W"]
