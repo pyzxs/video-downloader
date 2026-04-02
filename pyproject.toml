@@ -1,5 +1,5 @@
 [project]
-name = "video-downloader"
+name = "jl-video-downloader"
 version = "1.0.0"
 description = "多平台视频下载和文案提取工具 - 支持抖音、快手、小红书、B站、YouTube等"
 readme = "README.md"
@@ -39,7 +39,7 @@ dev = [
 ]
 
 [project.scripts]
-video-downloader = "main:main"
+jl-video-downloader = "main:main"
 
 [build-system]
 requires = ["hatchling"]

@@ -14,13 +14,13 @@
 ### 使用示例
 ```bash
 # 下载视频
-video-downloader download "https://v.douyin.com/xxxxx"
+jl-video-downloader download "https://v.douyin.com/xxxxx"
 
 # 提取文案
-video-downloader extract "https://www.bilibili.com/video/BV1xxx"
+jl-video-downloader extract "https://www.bilibili.com/video/BV1xxx"
 
 # 完整处理
-video-downloader process "https://www.youtube.com/watch?v=xxxx"
+jl-video-downloader process "https://www.youtube.com/watch?v=xxxx"
 ```
 
 
@@ -44,23 +44,23 @@ export OUTPUT_DIR="/tmp/output"
 ### 使用uv安装
 
 ```bash
-uv tool install video-downloader
+uv tool install jl-video-downloader
 ```
 
 ## 使用方法
 
 ```bash
 # 查看帮助
-video-downloader --help
+jl-video-downloader --help
 
 # 下载单个视频
-video-downloader download <视频URL>
+jl-video-downloader download <视频URL>
 
 # 批量下载
-video-downloader batch <包含URL的文件>
+jl-video-downloader batch <包含URL的文件>
 
 # 提取视频文案
-video-downloader extract <视频URL>
+jl-video-downloader extract <视频URL>
 ```
 
 ## 支持的平台
@@ -70,5 +70,5 @@ video-downloader extract <视频URL>
 - 小红书 (Xiaohongshu)
 - B站 (Bilibili)
 - YouTube
-- 其他支持 yt-dlp 的平台
+- 其他支持 yt-dlp
 
