@@ -51,16 +51,16 @@ uv tool install jl-video-downloader
 
 ```bash
 # 查看帮助
-jl-video-downloader --help
+uvx jl-video-downloader --help
 
 # 下载单个视频
-jl-video-downloader download <视频URL>
+uvx jl-video-downloader download <视频URL>
 
 # 批量下载
-jl-video-downloader batch <包含URL的文件>
+uvx jl-video-downloader batch <包含URL的文件>
 
 # 提取视频文案
-jl-video-downloader extract <视频URL>
+uvx jl-video-downloader extract <视频URL>
 ```
 
 ## 支持的平台
