@@ -48,7 +48,7 @@ class VideoProcessor:
 
     def __init__(
         self,
-        output_dir: Path = Path(os.environ.get("OUTPUT_DIR")),
+        output_dir: Path = Path("/tmp/video-downloader" or os.environ.get("OUTPUT_DIR")),
         proxy: Optional[str] = None,
     ):
         self.output_dir = output_dir
@@ -148,22 +148,22 @@ def main() -> int:
         epilog="""
 示例:
   # 获取视频信息
-  video-dl info "https://v.douyin.com/xxxxx"
+  video-downloader info "https://v.douyin.com/xxxxx"
 
   # 仅下载视频
-  video-dl download "https://v.douyin.com/xxxxx" -o ./videos
+  video-downloader download "https://v.douyin.com/xxxxx" -o ./videos
 
   # 提取文案（带语义分段）
-  video-dl extract "https://v.douyin.com/xxxxx" -o ./output
+  video-downloader extract "https://v.douyin.com/xxxxx" -o ./output
 
   # 提取文案（不分段）
-  video-dl extract "https://v.douyin.com/xxxxx" --no-segment
+  video-downloader extract "https://v.douyin.com/xxxxx" --no-segment
 
   # 提取文案并保留视频
-  video-dl extract "https://v.douyin.com/xxxxx" --save-video
+  video-downloader extract "https://v.douyin.com/xxxxx" --save-video
 
   # 完整处理（下载+提取+分段）
-  video-dl process "https://v.douyin.com/xxxxx" -o ./output
+  video-downloader process "https://v.douyin.com/xxxxx" -o ./output
 
 支持平台:
   抖音、快手、小红书、B站、YouTube

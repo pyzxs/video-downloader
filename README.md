@@ -9,43 +9,58 @@
 - 批量下载支持
 - 进度条显示
 - 异步下载，提高效率
+- OpenClaw技能集成
 
-## 安装
-
-### 使用 uv (推荐)
-
+### 使用示例
 ```bash
-# 克隆仓库
-git clone <repository-url>
-cd video-downloader
+# 下载视频
+video-downloader download "https://v.douyin.com/xxxxx"
 
-# 安装依赖
-uv sync
+# 提取文案
+video-downloader extract "https://www.bilibili.com/video/BV1xxx"
 
-# 安装为可执行包
-uv pip install -e .
+# 完整处理
+video-downloader process "https://www.youtube.com/watch?v=xxxx"
 ```
 
-### 使用 pip
+
+
+## 配置
+
+### 环境变量
 
 ```bash
-pip install -e .
+export SILI_FLOW_API_KEY="sk-xxxxxxxxxxxxxxxx"
+export DEEPSEEK_API_KEY="sk-xxxxxxxxxxxxxxxx"
+
+# 代理配置（可选）
+export YOUTUBE_PROXY="http://127.0.0.1:7897"
+export GLOBAL_PROXY="http://127.0.0.1:7897"
+
+# 输出目录
+export OUTPUT_DIR="/tmp/output"
+```
+
+### 使用uv安装
+
+```bash
+uv tool install video-downloader
 ```
 
 ## 使用方法
 
 ```bash
 # 查看帮助
-video-dl --help
+video-downloader --help
 
 # 下载单个视频
-video-dl download <视频URL>
+video-downloader download <视频URL>
 
 # 批量下载
-video-dl batch <包含URL的文件>
+video-downloader batch <包含URL的文件>
 
 # 提取视频文案
-video-dl extract <视频URL>
+video-downloader extract <视频URL>
 ```
 
 ## 支持的平台
@@ -57,30 +72,3 @@ video-dl extract <视频URL>
 - YouTube
 - 其他支持 yt-dlp 的平台
 
-## 配置
-
-复制 `.env.example` 到 `.env` 并填写必要的 API 密钥：
-
-```bash
-cp .env.example .env
-```
-
-## 开发
-
-```bash
-# 安装开发依赖
-uv sync --group dev
-
-# 运行测试
-pytest
-
-# 代码格式化
-ruff format .
-
-# 代码检查
-ruff check .
-```
-
-## 许可证
-
-MIT License

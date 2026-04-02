@@ -39,7 +39,7 @@ dev = [
 ]
 
 [project.scripts]
-video-dl = "main:main"
+video-downloader = "main:main"
 
 [build-system]
 requires = ["hatchling"]
