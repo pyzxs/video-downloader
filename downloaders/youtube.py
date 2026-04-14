@@ -17,9 +17,7 @@ class YouTubeDownloader(BaseDownloader):
 
         # 从环境变量获取代理设置
         self.proxy = (
-            os.getenv("YOUTUBE_PROXY")
-            or os.getenv("HTTP_PROXY")
-            or os.getenv("HTTPS_PROXY")
+            os.getenv("YOUTUBE_PROXY") or os.getenv("HTTP_PROXY") or os.getenv("HTTPS_PROXY")
         )
 
         self.ydl_opts = {
@@ -61,13 +59,16 @@ class YouTubeDownloader(BaseDownloader):
             except Exception as e:
                 raise Exception(f"获取YouTube视频信息失败: {e}")
 
-    async def download_video(
-        self, video_info: VideoInfo, show_progress: bool = True
-    ) -> Path:
+    async def download_video(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
         """下载YouTube视频"""
-        output_path = (
-            self.output_dir / f"{video_info.platform}_{video_info.video_id}.mp4"
-        )
+        # 检查文件是否已存在
+        existing_file = self._check_file_exists(video_info)
+        if existing_file:
+            if show_progress:
+                print(f"✓ 视频已存在，跳过下载: {existing_file}")
+            return existing_file
+
+        output_path = self._get_video_filepath(video_info)
 
         ydl_opts = {
             "format": "best[ext=mp4]",

@@ -23,18 +23,22 @@ class BilibiliDownloader(BaseDownloader):
         bvid = self._extract_bvid(url)
         return await self._get_info_by_bvid(bvid)
 
-    async def download_video(
-        self, video_info: VideoInfo, show_progress: bool = True
-    ) -> Path:
+    async def download_video(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
         """使用 you-get 下载B站视频"""
+        # 检查文件是否已存在
+        existing_file = self._check_file_exists(video_info)
+        if existing_file:
+            if show_progress:
+                print(f"✓ 视频已存在，跳过下载: {existing_file}")
+            return existing_file
+
         # 确保输出目录存在
         output_dir = self.output_dir
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # 构建 you-get 命令
-        # 使用 -o 指定输出目录，-O 指定输出文件名（不含扩展名）
-        # 由于 you-get 会自动添加扩展名，我们使用视频ID作为文件名，确保唯一
-        output_basename = f"{video_info.platform}_{video_info.video_id}"
+        # 使用基类方法获取文件名
+        output_path = self._get_video_filepath(video_info)
+        output_basename = output_path.stem
 
         cmd = [
             "you-get",
@@ -66,15 +70,9 @@ class BilibiliDownloader(BaseDownloader):
         stdout, stderr = await process.communicate()
 
         if process.returncode != 0:
-            error_msg = (
-                stderr.decode("utf-8", errors="ignore") if stderr else "unknown error"
-            )
-            raise Exception(
-                f"you-get 下载失败 (code {process.returncode}): {error_msg[:500]}"
-            )
+            error_msg = stderr.decode("utf-8", errors="ignore") if stderr else "unknown error"
+            raise Exception(f"you-get 下载失败 (code {process.returncode}): {error_msg[:500]}")
 
-        # 查找下载的文件（you-get 可能输出多个文件，但通常只有一个视频文件）
-        # 文件命名规则：输出目录 + 输出文件名 + 扩展名（如 .mp4, .flv）
         possible_extensions = [".mp4", ".flv", ".mkv", ".webm"]
         downloaded_file = None
         for ext in possible_extensions:
@@ -143,9 +141,7 @@ class BilibiliDownloader(BaseDownloader):
 
                 return VideoInfo(
                     video_id=bvid,
-                    title=self._sanitize_filename(
-                        video_data.get("title", f"bilibili_{bvid}")
-                    ),
+                    title=self._sanitize_filename(video_data.get("title", f"bilibili_{bvid}")),
                     url=video_url,
                     platform="bilibili",
                     author=video_data.get("owner", {}).get("name"),

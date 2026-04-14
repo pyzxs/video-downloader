@@ -17,11 +17,7 @@ class OtherDownloader(BaseDownloader):
         super().__init__(output_dir)
 
         # 从环境变量获取代理设置
-        self.proxy = (
-            os.getenv("OTHER_PROXY")
-            or os.getenv("HTTP_PROXY")
-            or os.getenv("HTTPS_PROXY")
-        )
+        self.proxy = os.getenv("OTHER_PROXY") or os.getenv("HTTP_PROXY") or os.getenv("HTTPS_PROXY")
 
         # yt-dlp配置
         self.ydl_opts = {
@@ -47,9 +43,7 @@ class OtherDownloader(BaseDownloader):
                 return await self._get_video_info_youget(url)
             except Exception as e2:
                 print(f"[INFO] you-get获取信息失败: {e2}")
-                raise Exception(
-                    f"获取视频信息失败: yt-dlp错误: {e1}, you-get错误: {e2}"
-                )
+                raise Exception(f"获取视频信息失败: yt-dlp错误: {e1}, you-get错误: {e2}")
 
     async def _get_video_info_ytdlp(self, url: str) -> VideoInfo:
         """使用yt-dlp获取视频信息"""
@@ -68,14 +62,10 @@ class OtherDownloader(BaseDownloader):
 
                 return VideoInfo(
                     video_id=info.get("id", self._extract_video_id(url)),
-                    title=self._sanitize_filename(
-                        info.get("title", self._extract_domain(url))
-                    ),
+                    title=self._sanitize_filename(info.get("title", self._extract_domain(url))),
                     url=video_url or url,
                     platform=self._extract_platform(url),
-                    author=info.get("uploader")
-                    or info.get("channel")
-                    or info.get("creator"),
+                    author=info.get("uploader") or info.get("channel") or info.get("creator"),
                     duration=info.get("duration"),
                     thumbnail=info.get("thumbnail"),
                     description=info.get("description", "")[:500],
@@ -111,9 +101,7 @@ class OtherDownloader(BaseDownloader):
 
             return VideoInfo(
                 video_id=self._extract_video_id(url),
-                title=self._sanitize_filename(
-                    info.get("title", self._extract_domain(url))
-                ),
+                title=self._sanitize_filename(info.get("title", self._extract_domain(url))),
                 url=url,  # you-get不直接提供视频URL
                 platform=self._extract_platform(url),
                 author=info.get("uploader") or info.get("author"),
@@ -126,9 +114,7 @@ class OtherDownloader(BaseDownloader):
         except Exception as e:
             raise Exception(f"you-get获取视频信息失败: {e}")
 
-    async def download_video(
-        self, video_info: VideoInfo, show_progress: bool = True
-    ) -> Path:
+    async def download_video(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
         """下载视频（先尝试yt-dlp，失败后尝试you-get）"""
         # 先尝试yt-dlp
         try:
@@ -143,13 +129,16 @@ class OtherDownloader(BaseDownloader):
                 print(f"[INFO] you-get下载失败: {e2}")
                 raise Exception(f"下载视频失败: yt-dlp错误: {e1}, you-get错误: {e2}")
 
-    async def _download_with_ytdlp(
-        self, video_info: VideoInfo, show_progress: bool = True
-    ) -> Path:
+    async def _download_with_ytdlp(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
         """使用yt-dlp下载视频"""
-        output_path = (
-            self.output_dir / f"{video_info.platform}_{video_info.video_id}.mp4"
-        )
+        # 检查文件是否已存在
+        existing_file = self._check_file_exists(video_info)
+        if existing_file:
+            if show_progress:
+                print(f"✓ 视频已存在，跳过下载: {existing_file}")
+            return existing_file
+
+        output_path = self._get_video_filepath(video_info)
 
         ydl_opts = {
             "format": "best[ext=mp4]",
@@ -176,9 +165,14 @@ class OtherDownloader(BaseDownloader):
         self, video_info: VideoInfo, show_progress: bool = True
     ) -> Path:
         """使用you-get下载视频"""
-        output_path = (
-            self.output_dir / f"{video_info.platform}_{video_info.video_id}.mp4"
-        )
+        # 检查文件是否已存在
+        existing_file = self._check_file_exists(video_info)
+        if existing_file:
+            if show_progress:
+                print(f"✓ 视频已存在，跳过下载: {existing_file}")
+            return existing_file
+
+        output_path = self._get_video_filepath(video_info)
 
         cmd = [
             "you-get",

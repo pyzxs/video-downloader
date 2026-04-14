@@ -71,9 +71,7 @@ class KuaishouDownloader(BaseDownloader):
     # 详情页 URL
     PC_DETAIL_URL = re.compile(r"(https?://\S*kuaishou\.(?:com|cn)/short-video/\S+)")
     C_DETAIL_URL = re.compile(r"(https?://\S*kuaishou\.(?:com|cn)/fw/photo/\S+)")
-    REDIRECT_DETAIL_URL = re.compile(
-        r"(https?://\S*chenzhongtech\.(?:com|cn)/fw/photo/\S+)"
-    )
+    REDIRECT_DETAIL_URL = re.compile(r"(https?://\S*chenzhongtech\.(?:com|cn)/fw/photo/\S+)")
 
     # 从 HTML 中提取数据的关键字
     WEB_KEYWORD = "window.__APOLLO_STATE__="
@@ -123,9 +121,7 @@ class KuaishouDownloader(BaseDownloader):
             metadata=video_data,
         )
 
-    async def download_video(
-        self, video_info: VideoInfo, show_progress: bool = True
-    ) -> Path:
+    async def download_video(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
         """下载快手视频
 
         Args:
@@ -139,15 +135,14 @@ class KuaishouDownloader(BaseDownloader):
         if not video_info.url:
             raise ValueError("视频下载链接为空")
 
-        output_path = (
-            self.output_dir / f"{video_info.platform}_{video_info.video_id}.mp4"
-        )
-
-        # 如果文件已存在，直接返回
-        if output_path.exists():
+        # 检查文件是否已存在
+        existing_file = self._check_file_exists(video_info)
+        if existing_file:
             if show_progress:
-                print(f"✓ 文件已存在，跳过下载: {output_path}")
-            return output_path
+                print(f"✓ 视频已存在，跳过下载: {existing_file}")
+            return existing_file
+
+        output_path = self._get_video_filepath(video_info)
 
         # 临时文件
         temp_path = output_path.with_suffix(".tmp")
@@ -262,9 +257,7 @@ class KuaishouDownloader(BaseDownloader):
         """更新 cookie"""
         if self._cookie:
             return
-        cookie_str = "; ".join(
-            [f"{key}={value.value}" for key, value in cookies.items()]
-        )
+        cookie_str = "; ".join([f"{key}={value.value}" for key, value in cookies.items()])
         if cookie_str:
             self._cookie = cookie_str
 
@@ -318,9 +311,7 @@ class KuaishouDownloader(BaseDownloader):
                 response.raise_for_status()
                 return await response.text()
 
-    def _extract_video_data(
-        self, html: str, photo_id: str, web: bool
-    ) -> Optional[dict]:
+    def _extract_video_data(self, html: str, photo_id: str, web: bool) -> Optional[dict]:
         """从 HTML 中提取视频数据
 
         Args:

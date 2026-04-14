@@ -93,9 +93,7 @@ class TestConfig:
     # 测试标记
     SKIP_NETWORK_TESTS = os.getenv("SKIP_NETWORK_TESTS", "false").lower() == "true"
     SKIP_API_TESTS = os.getenv("SKIP_API_TESTS", "false").lower() == "true"
-    RUN_INTEGRATION_TESTS = (
-        os.getenv("RUN_INTEGRATION_TESTS", "false").lower() == "true"
-    )
+    RUN_INTEGRATION_TESTS = os.getenv("RUN_INTEGRATION_TESTS", "false").lower() == "true"
 
     @classmethod
     def setup_test_environment(cls):

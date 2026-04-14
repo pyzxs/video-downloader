@@ -29,13 +29,16 @@ class DouyinDownloader(BaseDownloader):
 
         return await self._get_info_by_modal_id(modal_id)
 
-    async def download_video(
-        self, video_info: VideoInfo, show_progress: bool = True
-    ) -> Path:
+    async def download_video(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
         """下载抖音视频"""
-        output_path = (
-            self.output_dir / f"{video_info.platform}_{video_info.video_id}.mp4"
-        )
+        # 检查文件是否已存在
+        existing_file = self._check_file_exists(video_info)
+        if existing_file:
+            if show_progress:
+                print(f"✓ 视频已存在，跳过下载: {existing_file}")
+            return existing_file
+
+        output_path = self._get_video_filepath(video_info)
 
         async with aiohttp.ClientSession() as session:
             async with session.get(video_info.url, headers=self.HEADERS) as response:
@@ -68,9 +71,7 @@ class DouyinDownloader(BaseDownloader):
     async def _resolve_share_url(self, url: str) -> str:
         """解析分享链接获取视频ID"""
         async with aiohttp.ClientSession() as session:
-            async with session.get(
-                url, headers=self.HEADERS, allow_redirects=False
-            ) as response:
+            async with session.get(url, headers=self.HEADERS, allow_redirects=False) as response:
                 if response.status in (301, 302):
                     location = response.headers.get("Location")
                     if location:
@@ -100,11 +101,7 @@ class DouyinDownloader(BaseDownloader):
                 video_data = None
                 for key in ["video_(id)/page", "note_(id)/page"]:
                     if key in loader_data:
-                        items = (
-                            loader_data[key]
-                            .get("videoInfoRes", {})
-                            .get("item_list", [])
-                        )
+                        items = loader_data[key].get("videoInfoRes", {}).get("item_list", [])
                         if items:
                             video_data = items[0]
                             break
@@ -114,9 +111,7 @@ class DouyinDownloader(BaseDownloader):
 
                 # 获取视频URL
                 video_url = (
-                    video_data.get("video", {})
-                    .get("play_addr", {})
-                    .get("url_list", [None])[0]
+                    video_data.get("video", {}).get("play_addr", {}).get("url_list", [None])[0]
                 )
                 if video_url:
                     video_url = video_url.replace("playwm", "play")

@@ -34,9 +34,7 @@ class BaseDownloader(ABC):
         pass
 
     @abstractmethod
-    async def download_video(
-        self, video_info: VideoInfo, show_progress: bool = True
-    ) -> Path:
+    async def download_video(self, video_info: VideoInfo, show_progress: bool = True) -> Path:
         """下载视频"""
         pass
 
@@ -54,3 +52,24 @@ class BaseDownloader(ABC):
         name = re.sub(r'[\\/:*?"<>|]', "_", name)
         # 限制长度
         return name[:200]
+
+    def _get_video_filepath(self, video_info: VideoInfo, extension: str = ".mp4") -> Path:
+        """获取视频文件路径"""
+        # 使用平台和视频ID作为文件名
+        filename = f"{video_info.platform}_{video_info.video_id}{extension}"
+        return self.output_dir / filename
+
+    def _check_file_exists(self, video_info: VideoInfo, extension: str = ".mp4") -> Optional[Path]:
+        """检查文件是否已存在，如果存在则返回文件路径"""
+        # 首先尝试标准文件名
+        standard_path = self._get_video_filepath(video_info, extension)
+        if standard_path.exists():
+            return standard_path
+
+        # 如果没有找到，尝试查找以平台和视频ID开头的文件
+        pattern = f"{video_info.platform}_{video_info.video_id}.*"
+        for file in self.output_dir.glob(pattern):
+            if file.is_file():
+                return file
+
+        return None

@@ -13,31 +13,6 @@ from dotenv import load_dotenv
 # 导入本地模块
 from agents.download_agent import DownloadAgent
 from agents.extract_agent import ExtractAgent
-from utils.file import save_markdown
-
-
-# 简单的文本分段代理（临时实现）
-class SegmentAgent:
-    """简单的文本分段代理"""
-
-    def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key
-
-    async def segment(self, text: str) -> str:
-        """简单的文本分段 - 按段落分割"""
-        # 这是一个简单的实现，实际应该使用AI模型进行语义分段
-        # 这里只是按换行符分割
-        paragraphs = text.split("\n")
-        segmented = []
-        for i, para in enumerate(paragraphs):
-            if para.strip():  # 跳过空行
-                segmented.append(f"## 段落 {i + 1}\n{para.strip()}")
-
-        if segmented:
-            return "\n\n".join(segmented)
-        else:
-            return text
-
 
 # 自动加载 .env 文件
 load_dotenv()
@@ -60,10 +35,8 @@ class VideoProcessor:
         self,
         url: str,
         extract_text: bool = True,
-        segment: bool = True,
         save_video: bool = True,
         api_key: Optional[str] = None,
-        deepseek_key: Optional[str] = None,
     ) -> dict:
         """处理视频"""
         # 1. 下载视频
@@ -91,53 +64,14 @@ class VideoProcessor:
             result["text"] = text
             result["txt_path"] = txt_path  # 添加txt文件路径到结果
 
-            # 3. 语义分段（如果需要）
-            if segment and text and len(text.strip()) > 100:
-                print("\n" + "=" * 50)
-                print("步骤 3/3: 语义分段")
-                print("=" * 50)
-
-                if not self.segment_agent:
-                    self.segment_agent = SegmentAgent(deepseek_key)
-
-                segmented_text = await self.segment_agent.segment(text)
-                result["segmented_text"] = segmented_text
-
             # 保存文案
-            output_path = self._save_transcript(result)
-            result["output_path"] = output_path
+            result["output_path"] = txt_path
 
-        # 清理视频文件（如果不保存）
         if not save_video and video_path.exists():
             video_path.unlink()
             print(f"\n[OK] 临时视频文件已删除: {video_path}")
 
         return result
-
-    def _save_transcript(self, result: dict) -> Path:
-        """保存文案到文件"""
-        video_info = result["video_info"]
-        text = result.get("segmented_text", result.get("text", ""))
-
-        # 创建输出目录
-        output_dir = self.output_dir / video_info.platform / video_info.video_id
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        # 保存为 Markdown
-        output_path = output_dir / "transcript.md"
-
-        metadata = {
-            "title": video_info.title,
-            "video_id": video_info.video_id,
-            "platform": video_info.platform,
-            "author": video_info.author or "未知",
-            "video_url": video_info.url,
-        }
-
-        save_markdown(text, output_path, metadata)
-
-        print(f"\n[OK] 文案已保存: {output_path}")
-        return output_path
 
 
 def main() -> int:
@@ -153,20 +87,17 @@ def main() -> int:
   # 仅下载视频
   video-downloader download "https://v.douyin.com/xxxxx" -o ./videos
 
-  # 提取文案（带语义分段）
+  # 提取文案
   video-downloader extract "https://v.douyin.com/xxxxx" -o ./output
-
-  # 提取文案（不分段）
-  video-downloader extract "https://v.douyin.com/xxxxx" --no-segment
 
   # 提取文案并保留视频
   video-downloader extract "https://v.douyin.com/xxxxx" --save-video
 
-  # 完整处理（下载+提取+分段）
+  # 完整处理（下载+提取）
   video-downloader process "https://v.douyin.com/xxxxx" -o ./output
 
 支持平台:
-  抖音、快手、小红书、B站、YouTube
+  抖音、快手、B站、YouTube
         """,
     )
 
@@ -176,26 +107,14 @@ def main() -> int:
         help="命令: info(获取信息), download(下载视频), extract(提取文案), process(完整处理)",
     )
     parser.add_argument("url", help="视频分享链接")
-    parser.add_argument(
-        "-o", "--output", default="./output", help="输出目录 (默认: ./output)"
-    )
+    parser.add_argument("-o", "--output", default="./output", help="输出目录 (默认: ./output)")
     parser.add_argument(
         "--save-video",
         action="store_true",
         help="保存视频文件（仅extract/process命令）",
     )
     parser.add_argument(
-        "--no-segment",
-        dest="segment",
-        action="store_false",
-        help="禁用语义分段（仅extract/process命令）",
-    )
-    parser.add_argument(
         "--api-key", help="硅基流动API密钥（也可通过环境变量 SILI_FLOW_API_KEY 设置）"
-    )
-    parser.add_argument(
-        "--deepseek-key",
-        help="DeepSeek API密钥（也可通过环境变量 DEEPSEEK_API_KEY 设置）",
     )
     parser.add_argument(
         "--proxy",
@@ -207,9 +126,6 @@ def main() -> int:
     # 设置API密钥环境变量
     if args.api_key:
         os.environ["SILI_FLOW_API_KEY"] = args.api_key
-
-    if args.deepseek_key:
-        os.environ["DEEPSEEK_API_KEY"] = args.deepseek_key
 
     # 设置代理环境变量
     if args.proxy:
@@ -251,7 +167,6 @@ def main() -> int:
                     result = await processor.process(
                         args.url,
                         extract_text=True,
-                        segment=args.segment,
                         save_video=args.save_video,
                     )
 
@@ -279,7 +194,6 @@ def main() -> int:
                     result = await processor.process(
                         args.url,
                         extract_text=True,
-                        segment=args.segment,
                         save_video=args.save_video,
                     )
 

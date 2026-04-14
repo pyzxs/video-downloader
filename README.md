@@ -1,6 +1,6 @@
 # JL Video Downloader
 
-多平台视频下载和文案提取工具 - 支持抖音、快手、小红书、B站、YouTube等主流视频平台。
+多平台视频下载和文案提取工具 - 支持抖音、快手、B站、YouTube等主流视频平台。
 
 ## 功能特性
 
@@ -9,7 +9,6 @@
 - **批量处理**: 支持批量下载和文案提取
 - **进度显示**: 实时进度条显示下载状态
 - **异步下载**: 提高下载效率
-- **智能分段**: 自动语义分段，提高可读性
 - **代理支持**: 支持HTTP/SOCKS5代理
 
 ## 作为OpenClaw Skill使用
@@ -31,7 +30,6 @@ uv tool install jl-video-downloader
 
 # 3. 配置环境变量
 export SILI_FLOW_API_KEY="sk-your-key"
-export DEEPSEEK_API_KEY="sk-your-key"
 
 # 4. 使用
 uvx jl-video-downloader --help
@@ -72,7 +70,6 @@ uv pip install -e .
 ```bash
 # API密钥配置（文案提取必需）
 export SILI_FLOW_API_KEY="sk-your-siliflow-api-key"
-export DEEPSEEK_API_KEY="sk-your-deepseek-api-key"
 
 # 代理配置（可选，用于访问YouTube等）
 export YOUTUBE_PROXY="http://127.0.0.1:7897"
@@ -91,7 +88,6 @@ export MAX_RETRIES=3
 ```bash
 # API密钥
 SILI_FLOW_API_KEY="sk-your-siliflow-key"
-DEEPSEEK_API_KEY="sk-your-deepseek-key"
 
 # 代理设置
 YOUTUBE_PROXY="http://127.0.0.1:7897"
@@ -163,7 +159,6 @@ uvx jl-video-downloader extract <URL> --no-segment
 |------|----------|------|
 | 抖音 (Douyin) | ✅ 支持 | 需要处理反爬机制 |
 | 快手 (Kuaishou) | ✅ 支持 |  |
-| 小红书 (Xiaohongshu) | ✅ 支持 |  |
 | B站 (Bilibili) | ✅ 支持 | 支持BV号、短链接等格式 |
 | YouTube | ✅ 支持 | 可能需要代理 |
 | 其他平台 | ✅ 支持 | 通过yt-dlp支持 |
@@ -192,10 +187,6 @@ uvx jl-video-downloader process "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --
 uvx jl-video-downloader process "https://v.kuaishou.com/xxxxx"
 ```
 
-### 小红书
-```bash
-uvx jl-video-downloader process "https://www.xiaohongshu.com/explore/xxxxx"
-```
 
 ## 批量处理
 
@@ -247,7 +238,6 @@ sudo yum install ffmpeg
 ```bash
 # 检查环境变量
 echo $SILI_FLOW_API_KEY
-echo $DEEPSEEK_API_KEY
 
 # 重新配置
 echo 'export SILI_FLOW_API_KEY="sk-your-key"' >> ~/.jl-video-downloader/env
@@ -287,7 +277,7 @@ video-downloader/
 ### 运行测试
 ```bash
 # 安装开发依赖
-uv sync --group dev
+uv sync --all-groups
 
 # 运行测试
 pytest
